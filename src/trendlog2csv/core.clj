@@ -1,4 +1,5 @@
 (ns trendlog2csv.core
+  (:gen-class :main true)
   (:require [bacnet-scan-utils.bacnet :as b]
             [bacnet-scan-utils.export :as exp]
             [clojure-csv.core :as csv])
