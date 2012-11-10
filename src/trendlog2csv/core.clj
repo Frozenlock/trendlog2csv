@@ -16,8 +16,8 @@
   "Transform a collection of maps into a table ready for csv export."
   [maps]
   (let [ks (distinct (mapcat keys maps))]
-    (for [k ks] (cons (name k) (map k maps)))))
-
+    (apply map list
+           (for [k ks] (cons (name k) (map k maps))))))
 
 (defn maps->csv [maps]
   (when maps
@@ -87,7 +87,7 @@ Open source under the GPLV3 licence. https://github.com/Frozenlock/trendlog2csv"
 
     (when-not (and remote-device instance)
       (println "You must specify a target device and trend log instance. For example, if you want to get the data from the trend log #10 in the device #10100, you should use the following:
-\" -rd 10100 -i 10 \"")
+\"<application call> -rd 10100 -i 10\"")
       (System/exit 0))
     
 
