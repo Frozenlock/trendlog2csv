@@ -1,8 +1,7 @@
 (ns trendlog2csv.core
   (:require [bacnet-scan-utils.bacnet :as b]
             [bacnet-scan-utils.export :as exp]
-            [clojure-csv.core :as csv]
-            [incanter.core :as inc])
+            [clojure-csv.core :as csv])
   (:use [clojure.tools.cli :only [cli]]))
 
 (import '(com.serotonin.bacnet4j
@@ -12,29 +11,16 @@
 
 
 
-(defn stringify-coll
-  "Recursively transforms each element of the collection into a string."
-  [m]
-  (clojure.walk/walk (fn [a]
-                       (if (coll? a)
-                         (stringify-coll a)
-                         (if (keyword? a) (name a) (str a))))
-                       identity m))
+(defn maps->table
+  "Transform a collection of maps into a table ready for csv export."
+  [maps]
+  (let [ks (distinct (mapcat keys maps))]
+    (for [k ks] (cons (name k) (map k maps)))))
 
-(defn map->table
-  [m]
-  (let [dataset (incanter.core/to-dataset m)
-        lists (incanter.core/to-list dataset)]
-    (cons (:column-names dataset) (into []
-                                        (for [l lists]
-                                          (for [sub-list l]
-                                            (cond (coll? sub-list) (clojure.string/join ", " sub-list)
-                                                  (nil? sub-list) ""
-                                                  :else sub-list)))))))
 
-(defn table->csv [m]
-  (when m
-    (let [table (map->table (stringify-coll m))
+(defn maps->csv [maps]
+  (when maps
+    (let [table (maps->table maps)
           csv (csv/write-csv table)]
       csv)))
 
@@ -111,7 +97,7 @@ Open source under the GPLV3 licence. https://github.com/Frozenlock/trendlog2csv"
                  (b/find-remote-devices {:dest-port port})
                  (-> (.getRemoteDevice b/local-device remote-device)
                      (b/get-trend-log-data (ObjectIdentifier. ObjectType/trendLog instance))
-                     (table->csv)))]
+                     (maps->csv)))]
       (spit filename data)
       (println (str "File exported as : "filename)))))
 
